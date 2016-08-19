@@ -122,8 +122,7 @@ class EsRouter {
   }
 
   //allow items to subscribe to pre and post route changes
-  subscribe(topic = null, listener = null) {
-
+  subscribe(topic, listener) {
     if (!topic || !listener) return {};
 
     // Check validity of topic and listener
