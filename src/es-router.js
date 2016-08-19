@@ -143,9 +143,9 @@ class EsRouter {
     const filterFunction = (item) => {
       return item !== passedF;
     };
-    for (const item in this.events) {
+    Object.keys(this.events).forEach((item) => {
       this.events[item] = this.events[item].filter(filterFunction);
-    }
+    });
   }
 
   //add query params to the object, update path, and fire corresponding events
@@ -163,11 +163,11 @@ class EsRouter {
     const currentQueryParam = this.getParamsFromUrl();
     const currentPath = this.getPathFromUrl();
 
-    for (const key in this.queryParams) {
+    Object.keys(this.queryParams).forEach((key) => {
       if (!this.queryParams[key] && typeof this.queryParams[key] !== 'number') {
         delete this.queryParams[key];
       }
-    }
+    });
 
     const allNewParams = this.createParamString(currentQueryParam).join('');
     const oldParams = this.createParamString(this.queryParams).join('');
