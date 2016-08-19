@@ -1,3 +1,7 @@
+function isNotDefined(value) {
+  return typeof value === 'undefined' || value === null;
+}
+
 class EsRouter {
   constructor({useHash, routes, notStrictRouting, home, base}) {
     this.events = {
@@ -146,12 +150,12 @@ class EsRouter {
 
   //add query params to the object, update path, and fire corresponding events
   search(item, value) {
-    if ((typeof item === 'undefined' || item === null)) {
+    if (isNotDefined(item)) {
       return this.queryParams;
     }
     if (typeof item === 'object') {
       this.queryParams = Object.assign(this.queryParams, item);
-    } else if ((typeof value === 'undefined' || value === null)) {
+    } else if (isNotDefined(value)) {
       if (this.queryParams[item]) {delete this.queryParams[item];}
     } else {
       this.queryParams[item] = value;
@@ -211,8 +215,7 @@ class EsRouter {
 
   createParamString(qp) {
     return Object.keys(qp).reduce((prev, key) => {
-      if (typeof qp[key] === 'undefined' || qp[key] === null ||
-      (qp[key] && !qp[key].length)) {
+      if (isNotDefined(qp[key]) || !qp[key].length) {
         return prev;
       }
       return [...prev, (`${encodeURIComponent(key)}=${encodeURIComponent(qp[key])}`)];
@@ -279,4 +282,3 @@ if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
 } else {
   window.EsRouter = EsRouter;
 }
-
