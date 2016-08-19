@@ -13,7 +13,7 @@ const router = new Router({
   useHash: false,
   home: 'home',
   notStrictRouting: false,
-  base: '/testurl/`,
+  base: '/testurl/',
   routes: [
     {
       name: 'home',
@@ -65,7 +65,7 @@ first, import your router in your js where you'd like to control the view
 ```javascript
 import {router} from './active-router';
 
-router.path('/something/somethingElse);
+router.path('/something/somethingElse');
 ```
 this will cause the url to update to this path, and it fires two subscription events, called `beginRouteChange` and `finishRouteChange`.
 
