@@ -2,6 +2,10 @@ function isNotDefined(value) {
   return typeof value === 'undefined' || value === null;
 }
 
+function clone (object) {
+  return JSON.parse(JSON.stringify(object));
+}
+
 class EsRouter {
   constructor({useHash, routes, notStrictRouting, home, base}) {
     this.events = {
@@ -110,7 +114,7 @@ class EsRouter {
     if (currentPath !== this.currentPath) {
       this.currentPath = currentPath;
       const newPathObject = this.getPreDefinedRoute(this.currentPath);
-      const oldPathObject = JSON.parse(JSON.stringify(this.currentPathObject));
+      const oldPathObject = clone(this.currentPathObject);
       this.currentPathObject = newPathObject;
       this.startRouteChange(oldPathObject, newPathObject);
       this.finishRouteChange(oldPathObject, newPathObject);
@@ -182,7 +186,7 @@ class EsRouter {
   //get url object corresponding to path
   getPreDefinedRoute(route) {
     const pathSplit = route.split('/').filter((item) => item);
-    const allRoutes = JSON.parse(JSON.stringify(this.allRoutes));
+    const allRoutes = clone(this.allRoutes);
 
     //find path that is trying to route to
     return allRoutes[pathSplit.length] && allRoutes[pathSplit.length].reduce((prev, item) => {
@@ -254,7 +258,7 @@ class EsRouter {
 
     //finally, set current path state
     const oldPath = this.currentPathObject && Object.keys(this.currentPathObject).length &&
-      JSON.parse(JSON.stringify(this.currentPathObject));
+      clone(this.currentPathObject);
     this.currentPathObject = newPathObject;
     this.currentPath = route;
     //run all functions afterwards
@@ -273,7 +277,7 @@ class EsRouter {
     this.events.finishRouteChange.forEach((item) => {
       item(oldPath, newPath);
     });
-    this.previousQueryParam = JSON.parse(JSON.stringify(this.queryParams));
+    this.previousQueryParam = clone(this.queryParams);
   }
 }
 
