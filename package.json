@@ -1,9 +1,14 @@
 {
   "name": "es-router",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Joshua Blaney",
     "email": "joshua.blaney@priceline.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pricelinelabs/es-router"
   },
   "babel": {
     "presets": [
