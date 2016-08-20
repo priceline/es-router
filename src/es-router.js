@@ -136,9 +136,9 @@ class EsRouter {
 
     // Return instance of the subscription for deletion
     return {
-      remove: (function() {
+      remove: () => {
         delete this.events[topic][index];
-      }).bind(this),
+      },
     };
   }
 
