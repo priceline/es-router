@@ -37,22 +37,22 @@ export {router};
 
 let's go through each option.
 
-### useHash
+### useHash (optional, defaults to false)
 
 useHash defines whether or not you'd like to use pushState, or the equivalent to Angular's `html5Mode`. This is a great option if your base is not consistent or you're on IE9
 
-### home
+### home (required unless notStrictRouting is false)
 
 this is a default path that you'd like to go to if the url doesn't match to any of the paths you've defined
 
-### notStrictRouting
+### notStrictRouting (optional)
 
 this gives you the ability to go to any path you'd like, regardless of whether you've declared it in this config or not
 
-### base
+### base (required unless useHash is false)
 this is the base url for your application if you aren't using the hash. if this isn't declared and you are using `useHash`, it will try and retrieve the base from the `base` tag in the html5Mode
 
-### routes
+### routes (required)
 
 routes are the locations that you've defined to use in your application. the `:` means that it is a variable route, and can be changed
 
@@ -174,3 +174,25 @@ class App extends Component {
   }
 }
 ```
+
+## Notes for Angular Implementation
+
+One thing that was discovered while building the router is that Angular 1 has an internal state for route, even if you aren't using any angular router. To disable this (which is required for this application) please add this snippet to your code.
+
+```javascript
+angular
+.module('myApp')
+.config(['$provide', function ($provide) {
+  $provide.decorator('$sniffer', ['$delegate', function ($delegate) {
+    $delegate.history = false;
+    return $delegate;
+  }]);
+  $provide.decorator('$browser', ['$delegate', function ($delegate) {
+    $delegate.onUrlChange = function () {};
+    $delegate.url = function () { return '';};
+    return $delegate;
+  }]);
+}]);
+```
+
+this will disable the use of `$location`, but es-router is meant as a replacement for `$location` so it shouldn't be an issue.

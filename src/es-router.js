@@ -2,7 +2,7 @@ function isNotDefined(value) {
   return typeof value === 'undefined' || value === null;
 }
 
-function clone (object) {
+function clone(object) {
   return JSON.parse(JSON.stringify(object));
 }
 
@@ -164,7 +164,6 @@ class EsRouter {
       this.queryParams[item] = value;
     }
     const currentQueryParam = this.getParamsFromUrl();
-    const currentPath = this.getPathFromUrl();
 
     Object.keys(this.queryParams).forEach((key) => {
       if (!this.queryParams[key] && typeof this.queryParams[key] !== 'number') {
@@ -180,6 +179,7 @@ class EsRouter {
     this.events.paramChange.forEach((item) => {
       item(this.queryParams);
     });
+    return this.queryParams;
   }
 
   //get url object corresponding to path
@@ -213,6 +213,7 @@ class EsRouter {
         newItem.variablePath = variableItems;
         return newItem;
       }
+      return false;
     }, 0);
   }
 
