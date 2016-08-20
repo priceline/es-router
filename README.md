@@ -7,13 +7,13 @@ That's where es-router comes in. es-router is a vanilla router that can be impor
 ## setup
 
 to get started you'll need to import es-router and give it a config
-```
+```javascript
 import Router from 'es-router';
 const router = new Router({
   useHash: false,
   home: 'home',
   notStrictRouting: false,
-  base: '/testurl/`,
+  base: '/testurl/',
   routes: [
     {
       name: 'home',
@@ -62,21 +62,21 @@ Okay, you've configured your router, now to use it!
 
 first, import your router in your js where you'd like to control the view
 
-```
+```javascript
 import {router} from './active-router';
 
-router.path('/something/somethingElse);
+router.path('/something/somethingElse');
 ```
 this will cause the url to update to this path, and it fires two subscription events, called `beginRouteChange` and `finishRouteChange`.
 
 you subscribe to these using
-```
+```javascript
 router.subscribe('finishRouteChange', (oldPath, newPath) => {
 });
 ```
 oldPath is what the path routed from, newPath is the path that was routed to. the structure comes back similarly to the object that was declared in the config
 
-```
+```javascript
 {
   name: 'floater',
   route: '/something/:router',
@@ -92,7 +92,7 @@ you'll notice that there's a third key called `variablePath` which maps the name
 but how powerful is a router without query parameters? es-router uses persistent query parameters and will update them using `router.search()`.
 
 `router.search()` has four uses
-```
+```javascript
 //will set the query parameter `new-param` to the value of `truth`
 router.search('new-param', 'truth');
 //will set all keys of the object to the value in the url
@@ -103,7 +103,7 @@ router.search('new-param');
 router.search()
 ```
 any time a query parameter is updated, the event `paramChange` will be fired, which cane be subscribed to the same way the paths are subscribed to
-```
+```javascript
 router.subscribe('paramChange', (params) => {
 });
 ```
@@ -115,7 +115,7 @@ The idea behind the router is that you install it in your favorite SPA and use i
 
 ## Angular
 
-```
+```javascript
 import angular from 'angular';
 import routes from './routes';
 
@@ -146,7 +146,7 @@ angular.module('myApp')
 
 ## React
 
-```
+```javascript
 import React, { Component } from 'react';
 import routes from './routes';
 
