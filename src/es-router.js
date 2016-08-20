@@ -1,3 +1,11 @@
+function isNotDefined(value) {
+  return typeof value === 'undefined' || value === null;
+}
+
+function clone (object) {
+  return JSON.parse(JSON.stringify(object));
+}
+
 class EsRouter {
   constructor({useHash, routes, notStrictRouting, home, base}) {
     this.events = {
@@ -106,7 +114,7 @@ class EsRouter {
     if (currentPath !== this.currentPath) {
       this.currentPath = currentPath;
       const newPathObject = this.getPreDefinedRoute(this.currentPath);
-      const oldPathObject = JSON.parse(JSON.stringify(this.currentPathObject));
+      const oldPathObject = clone(this.currentPathObject);
       this.currentPathObject = newPathObject;
       this.startRouteChange(oldPathObject, newPathObject);
       this.finishRouteChange(oldPathObject, newPathObject);
@@ -114,8 +122,7 @@ class EsRouter {
   }
 
   //allow items to subscribe to pre and post route changes
-  subscribe(topic = null, listener = null) {
-
+  subscribe(topic, listener) {
     if (!topic || !listener) return {};
 
     // Check validity of topic and listener
@@ -129,9 +136,9 @@ class EsRouter {
 
     // Return instance of the subscription for deletion
     return {
-      remove: (function() {
+      remove: () => {
         delete this.events[topic][index];
-      }).bind(this),
+      },
     };
   }
 
@@ -139,19 +146,19 @@ class EsRouter {
     const filterFunction = (item) => {
       return item !== passedF;
     };
-    for (const item in this.events) {
+    Object.keys(this.events).forEach((item) => {
       this.events[item] = this.events[item].filter(filterFunction);
-    }
+    });
   }
 
   //add query params to the object, update path, and fire corresponding events
   search(item, value) {
-    if ((typeof item === 'undefined' || item === null)) {
+    if (isNotDefined(item)) {
       return this.queryParams;
     }
     if (typeof item === 'object') {
       this.queryParams = Object.assign(this.queryParams, item);
-    } else if ((typeof value === 'undefined' || value === null)) {
+    } else if (isNotDefined(value)) {
       if (this.queryParams[item]) {delete this.queryParams[item];}
     } else {
       this.queryParams[item] = value;
@@ -159,11 +166,11 @@ class EsRouter {
     const currentQueryParam = this.getParamsFromUrl();
     const currentPath = this.getPathFromUrl();
 
-    for (const key in this.queryParams) {
+    Object.keys(this.queryParams).forEach((key) => {
       if (!this.queryParams[key] && typeof this.queryParams[key] !== 'number') {
         delete this.queryParams[key];
       }
-    }
+    });
 
     const allNewParams = this.createParamString(currentQueryParam).join('');
     const oldParams = this.createParamString(this.queryParams).join('');
@@ -178,7 +185,7 @@ class EsRouter {
   //get url object corresponding to path
   getPreDefinedRoute(route) {
     const pathSplit = route.split('/').filter((item) => item);
-    const allRoutes = JSON.parse(JSON.stringify(this.allRoutes));
+    const allRoutes = clone(this.allRoutes);
 
     //find path that is trying to route to
     return allRoutes[pathSplit.length] && allRoutes[pathSplit.length].reduce((prev, item) => {
@@ -211,8 +218,7 @@ class EsRouter {
 
   createParamString(qp) {
     return Object.keys(qp).reduce((prev, key) => {
-      if (typeof qp[key] === 'undefined' || qp[key] === null ||
-      (qp[key] && !qp[key].length)) {
+      if (isNotDefined(qp[key]) || !qp[key].length) {
         return prev;
       }
       return [...prev, (`${encodeURIComponent(key)}=${encodeURIComponent(qp[key])}`)];
@@ -251,7 +257,7 @@ class EsRouter {
 
     //finally, set current path state
     const oldPath = this.currentPathObject && Object.keys(this.currentPathObject).length &&
-      JSON.parse(JSON.stringify(this.currentPathObject));
+      clone(this.currentPathObject);
     this.currentPathObject = newPathObject;
     this.currentPath = route;
     //run all functions afterwards
@@ -270,7 +276,7 @@ class EsRouter {
     this.events.finishRouteChange.forEach((item) => {
       item(oldPath, newPath);
     });
-    this.previousQueryParam = JSON.parse(JSON.stringify(this.queryParams));
+    this.previousQueryParam = clone(this.queryParams);
   }
 }
 
@@ -279,4 +285,3 @@ if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
 } else {
   window.EsRouter = EsRouter;
 }
-
