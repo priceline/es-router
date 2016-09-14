@@ -8,6 +8,14 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function isNotDefined(value) {
+  return typeof value === 'undefined' || value === null;
+}
+
+function clone(object) {
+  return JSON.parse(JSON.stringify(object));
+}
+
 var EsRouter = function () {
   function EsRouter(_ref) {
     var _this = this;
@@ -31,14 +39,14 @@ var EsRouter = function () {
     this.notStrictRouting = notStrictRouting;
     this.queryParams = this.getParamsFromUrl();
 
-    if (base[base.length - 1] === '/') {
+    if (base && base[base.length - 1] === '/') {
       this.base = this.base.substring(0, this.base.length - 1);
     }
 
     //get base if needed
     if (!base && !useHash) {
       var _base = document.getElementsByTagName('base')[0] && document.getElementsByTagName('base')[0].href || '';
-      this.base = _base.split(window.location.origin)[1];
+      this.base = _base.split(this.returnWindow().location.origin)[1];
     }
 
     //create initial object based on passed in params
@@ -72,10 +80,10 @@ var EsRouter = function () {
 
     //set up application based on the hash or history
     if (useHash) {
-      if (window.location.href.indexOf('#') === -1) {
-        window.location.hash = '/';
+      if (this.returnWindow().location.href.indexOf('#') === -1) {
+        this.returnWindow().location.hash = '/';
       }
-      window.addEventListener('hashchange', function (e) {
+      this.returnWindow().addEventListener('hashchange', function (e) {
         if (_this.wasChangedByUser) {
           _this.wasChangedByUser = false;
           return;
@@ -83,17 +91,22 @@ var EsRouter = function () {
         _this.eventChangeListener.call(_this, e);
       });
     } else {
-      window.onpopstate = this.eventChangeListener.bind(this);
+      this.returnWindow().onpopstate = this.eventChangeListener.bind(this);
     }
 
     //do an initial routing
     this.path(this.getPathFromUrl());
   }
 
-  //get path we're currently on
-
-
   _createClass(EsRouter, [{
+    key: 'returnWindow',
+    value: function returnWindow() {
+      return window;
+    }
+
+    //get path we're currently on
+
+  }, {
     key: 'getState',
     value: function getState() {
       return this.currentPathObject;
@@ -101,7 +114,7 @@ var EsRouter = function () {
   }, {
     key: 'getParamsFromUrl',
     value: function getParamsFromUrl() {
-      var queryParamString = this.useHash ? window.location.hash.split('?')[1] : window.location.search.split('?')[1];
+      var queryParamString = this.useHash ? this.returnWindow().location.hash.split('?')[1] : this.returnWindow().location.search.split('?')[1];
       return queryParamString && queryParamString.split('&').reduce(function (prev, queryparam) {
         var split = queryparam.split('=');
         prev[decodeURIComponent(split[0])] = decodeURIComponent(split[1]) || '';
@@ -111,7 +124,7 @@ var EsRouter = function () {
   }, {
     key: 'getPathFromUrl',
     value: function getPathFromUrl() {
-      return !this.useHash ? window.location.pathname.split(this.base)[1] || '/' : window.location.hash.split('?')[0].substring(1);
+      return !this.useHash ? this.returnWindow().location.pathname.split(this.base)[1] || '/' : this.returnWindow().location.hash.split('?')[0].substring(1);
     }
   }, {
     key: 'eventChangeListener',
@@ -136,7 +149,7 @@ var EsRouter = function () {
       if (currentPath !== this.currentPath) {
         this.currentPath = currentPath;
         var newPathObject = this.getPreDefinedRoute(this.currentPath);
-        var oldPathObject = JSON.parse(JSON.stringify(this.currentPathObject));
+        var oldPathObject = clone(this.currentPathObject);
         this.currentPathObject = newPathObject;
         this.startRouteChange(oldPathObject, newPathObject);
         this.finishRouteChange(oldPathObject, newPathObject);
@@ -147,10 +160,8 @@ var EsRouter = function () {
 
   }, {
     key: 'subscribe',
-    value: function subscribe() {
-      var topic = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
-      var listener = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
-
+    value: function subscribe(topic, listener) {
+      var _this3 = this;
 
       if (!topic || !listener) return {};
 
@@ -163,20 +174,22 @@ var EsRouter = function () {
 
       // Return instance of the subscription for deletion
       return {
-        remove: function () {
-          delete this.events[topic][index];
-        }.bind(this)
+        remove: function remove() {
+          delete _this3.events[topic][index];
+        }
       };
     }
   }, {
     key: 'unsubscribe',
     value: function unsubscribe(passedF) {
+      var _this4 = this;
+
       var filterFunction = function filterFunction(item) {
         return item !== passedF;
       };
-      for (var item in this.events) {
-        this.events[item] = this.events[item].filter(filterFunction);
-      }
+      Object.keys(this.events).forEach(function (item) {
+        _this4.events[item] = _this4.events[item].filter(filterFunction);
+      });
     }
 
     //add query params to the object, update path, and fire corresponding events
@@ -184,29 +197,28 @@ var EsRouter = function () {
   }, {
     key: 'search',
     value: function search(item, value) {
-      var _this3 = this;
+      var _this5 = this;
 
-      if (typeof item === 'undefined' || item === null) {
+      if (isNotDefined(item)) {
         return this.queryParams;
       }
       if ((typeof item === 'undefined' ? 'undefined' : _typeof(item)) === 'object') {
         this.queryParams = Object.assign(this.queryParams, item);
-      } else if (typeof value === 'undefined' || value === null) {
+      } else if (isNotDefined(value)) {
         if (this.queryParams[item]) {
           delete this.queryParams[item];
         }
       } else {
         this.queryParams[item] = value;
       }
-      var currentQueryParam = this.getParamsFromUrl();
-      var currentPath = this.getPathFromUrl();
 
-      for (var key in this.queryParams) {
-        if (!this.queryParams[key] && typeof this.queryParams[key] !== 'number') {
-          delete this.queryParams[key];
+      Object.keys(this.queryParams).forEach(function (key) {
+        if (!_this5.queryParams[key] && typeof _this5.queryParams[key] !== 'number') {
+          delete _this5.queryParams[key];
         }
-      }
+      });
 
+      var currentQueryParam = this.getParamsFromUrl();
       var allNewParams = this.createParamString(currentQueryParam).join('');
       var oldParams = this.createParamString(this.queryParams).join('');
 
@@ -215,8 +227,9 @@ var EsRouter = function () {
       }
       this.path(this.currentPath, true);
       this.events.paramChange.forEach(function (item) {
-        item(_this3.queryParams);
+        item(_this5.queryParams);
       });
+      return this.queryParams;
     }
 
     //get url object corresponding to path
@@ -227,7 +240,7 @@ var EsRouter = function () {
       var pathSplit = route.split('/').filter(function (item) {
         return item;
       });
-      var allRoutes = JSON.parse(JSON.stringify(this.allRoutes));
+      var allRoutes = clone(this.allRoutes);
 
       //find path that is trying to route to
       return allRoutes[pathSplit.length] && allRoutes[pathSplit.length].reduce(function (prev, item) {
@@ -259,16 +272,19 @@ var EsRouter = function () {
           newItem.variablePath = variableItems;
           return newItem;
         }
+        return false;
       }, 0);
     }
   }, {
     key: 'createParamString',
     value: function createParamString(qp) {
       return Object.keys(qp).reduce(function (prev, key) {
-        if (typeof qp[key] === 'undefined' || qp[key] === null || qp[key] && !qp[key].length) {
+        var keyString = key.toString();
+        var valueString = qp[key].toString();
+        if (isNotDefined(valueString) || !valueString.length) {
           return prev;
         }
-        return [].concat(_toConsumableArray(prev), [encodeURIComponent(key) + '=' + encodeURIComponent(qp[key])]);
+        return [].concat(_toConsumableArray(prev), [encodeURIComponent(keyString) + '=' + encodeURIComponent(valueString)]);
       }, []);
     }
 
@@ -302,13 +318,13 @@ var EsRouter = function () {
       //set new url
       if (this.useHash) {
         this.wasChangedByUser = true;
-        window.location.hash = newUrl;
+        this.returnWindow().location.hash = newUrl;
       } else {
-        window.history.pushState(null, null, newUrl);
+        this.returnWindow().history.pushState(null, null, newUrl);
       }
 
       //finally, set current path state
-      var oldPath = this.currentPathObject && Object.keys(this.currentPathObject).length && JSON.parse(JSON.stringify(this.currentPathObject));
+      var oldPath = this.currentPathObject && Object.keys(this.currentPathObject).length && clone(this.currentPathObject);
       this.currentPathObject = newPathObject;
       this.currentPath = route;
       //run all functions afterwards
@@ -329,7 +345,7 @@ var EsRouter = function () {
       this.events.finishRouteChange.forEach(function (item) {
         item(oldPath, newPath);
       });
-      this.previousQueryParam = JSON.parse(JSON.stringify(this.queryParams));
+      this.previousQueryParam = clone(this.queryParams);
     }
   }]);
 

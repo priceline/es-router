@@ -19,14 +19,14 @@ class EsRouter {
     this.notStrictRouting = notStrictRouting;
     this.queryParams = this.getParamsFromUrl();
 
-    if (base[base.length - 1] === '/') {
+    if (base && base[base.length - 1] === '/') {
       this.base = this.base.substring(0, this.base.length - 1);
     }
 
     //get base if needed
     if (!base && !useHash) {
       const base = (document.getElementsByTagName('base')[0] && document.getElementsByTagName('base')[0].href) || '';
-      this.base = base.split(window.location.origin)[1];
+      this.base = base.split(this.returnWindow().location.origin)[1];
     }
 
     //create initial object based on passed in params
@@ -58,10 +58,10 @@ class EsRouter {
 
     //set up application based on the hash or history
     if (useHash) {
-      if (window.location.href.indexOf('#') === -1) {
-        window.location.hash = '/';
+      if (this.returnWindow().location.href.indexOf('#') === -1) {
+        this.returnWindow().location.hash = '/';
       }
-      window.addEventListener('hashchange', (e) => {
+      this.returnWindow().addEventListener('hashchange', (e) => {
         if (this.wasChangedByUser) {
           this.wasChangedByUser = false;
           return;
@@ -69,11 +69,16 @@ class EsRouter {
         this.eventChangeListener.call(this, e);
       });
     } else {
-      window.onpopstate = this.eventChangeListener.bind(this);
+      this.returnWindow().onpopstate = this.eventChangeListener.bind(this);
     }
 
     //do an initial routing
     this.path(this.getPathFromUrl());
+  }
+
+  //for testing purposes we can break into window
+  returnWindow() {
+    return window;
   }
 
   //get path we're currently on
@@ -82,7 +87,8 @@ class EsRouter {
   }
 
   getParamsFromUrl() {
-    const queryParamString = this.useHash ? window.location.hash.split('?')[1] : window.location.search.split('?')[1];
+    const queryParamString = this.useHash ? this.returnWindow().location.hash.split('?')[1] :
+      this.returnWindow().location.search.split('?')[1];
     return (queryParamString && queryParamString.split('&').reduce((prev, queryparam) => {
       const split = queryparam.split('=');
       prev[decodeURIComponent(split[0])] = decodeURIComponent(split[1]) || '';
@@ -91,8 +97,8 @@ class EsRouter {
   }
 
   getPathFromUrl() {
-    return !this.useHash ? (window.location.pathname.split(this.base)[1] || '/') :
-        window.location.hash.split('?')[0].substring(1);
+    return !this.useHash ? (this.returnWindow().location.pathname.split(this.base)[1] || '/') :
+        this.returnWindow().location.hash.split('?')[0].substring(1);
   }
 
   eventChangeListener() {
@@ -163,7 +169,6 @@ class EsRouter {
     } else {
       this.queryParams[item] = value;
     }
-    const currentQueryParam = this.getParamsFromUrl();
 
     Object.keys(this.queryParams).forEach((key) => {
       if (!this.queryParams[key] && typeof this.queryParams[key] !== 'number') {
@@ -171,6 +176,7 @@ class EsRouter {
       }
     });
 
+    const currentQueryParam = this.getParamsFromUrl();
     const allNewParams = this.createParamString(currentQueryParam).join('');
     const oldParams = this.createParamString(this.queryParams).join('');
 
@@ -219,10 +225,12 @@ class EsRouter {
 
   createParamString(qp) {
     return Object.keys(qp).reduce((prev, key) => {
-      if (isNotDefined(qp[key]) || !qp[key].length) {
+      const keyString = key.toString();
+      const valueString = qp[key].toString();
+      if (isNotDefined(valueString) || !valueString.length) {
         return prev;
       }
-      return [...prev, (`${encodeURIComponent(key)}=${encodeURIComponent(qp[key])}`)];
+      return [...prev, (`${encodeURIComponent(keyString)}=${encodeURIComponent(valueString)}`)];
     }, []);
   }
 
@@ -251,9 +259,9 @@ class EsRouter {
     //set new url
     if (this.useHash) {
       this.wasChangedByUser = true;
-      window.location.hash = newUrl;
+      this.returnWindow().location.hash = newUrl;
     } else {
-      window.history.pushState(null, null, newUrl);
+      this.returnWindow().history.pushState(null, null, newUrl);
     }
 
     //finally, set current path state
