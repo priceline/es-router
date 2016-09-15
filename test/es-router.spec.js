@@ -1,22 +1,20 @@
 import EsRouter from '../src/es-router';
 
 let currentPath = '';
-EsRouter.prototype.returnWindow = () => {
-  return {
-    location: {
-      origin: '',
-      href: '',
-      hash: '',
-      pathname: '',
-      search: currentPath,
+GLOBAL.window = {
+  location: {
+    origin: '',
+    href: '',
+    hash: '',
+    pathname: '',
+    search: currentPath,
+  },
+  addEventListener: () => {},
+  history: {
+    pushState: (state, other, url) => {
+      currentPath = url;
     },
-    addEventListener: () => {},
-    history: {
-      pushState: (state, other, url) => {
-        currentPath = url;
-      },
-    },
-  };
+  },
 };
 
 const router = new EsRouter({
@@ -93,5 +91,9 @@ describe('query params', () => {
       test: 'ohYeah',
       otherKey: 'yessir',
     });
+  });
+  it('should add an empty param if passed an empty string', () => {
+    router.search('empty-string', '');
+    expect(router.search()['empty-string']).toEqual('');
   });
 });

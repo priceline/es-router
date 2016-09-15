@@ -46,7 +46,7 @@ var EsRouter = function () {
     //get base if needed
     if (!base && !useHash) {
       var _base = document.getElementsByTagName('base')[0] && document.getElementsByTagName('base')[0].href || '';
-      this.base = _base.split(this.returnWindow().location.origin)[1];
+      this.base = _base.split(window.location.origin)[1];
     }
 
     //create initial object based on passed in params
@@ -80,10 +80,10 @@ var EsRouter = function () {
 
     //set up application based on the hash or history
     if (useHash) {
-      if (this.returnWindow().location.href.indexOf('#') === -1) {
-        this.returnWindow().location.hash = '/';
+      if (window.location.href.indexOf('#') === -1) {
+        window.location.hash = '/';
       }
-      this.returnWindow().addEventListener('hashchange', function (e) {
+      window.addEventListener('hashchange', function (e) {
         if (_this.wasChangedByUser) {
           _this.wasChangedByUser = false;
           return;
@@ -91,22 +91,17 @@ var EsRouter = function () {
         _this.eventChangeListener.call(_this, e);
       });
     } else {
-      this.returnWindow().onpopstate = this.eventChangeListener.bind(this);
+      window.onpopstate = this.eventChangeListener.bind(this);
     }
 
     //do an initial routing
     this.path(this.getPathFromUrl());
   }
 
+  //get path we're currently on
+
+
   _createClass(EsRouter, [{
-    key: 'returnWindow',
-    value: function returnWindow() {
-      return window;
-    }
-
-    //get path we're currently on
-
-  }, {
     key: 'getState',
     value: function getState() {
       return this.currentPathObject;
@@ -114,7 +109,7 @@ var EsRouter = function () {
   }, {
     key: 'getParamsFromUrl',
     value: function getParamsFromUrl() {
-      var queryParamString = this.useHash ? this.returnWindow().location.hash.split('?')[1] : this.returnWindow().location.search.split('?')[1];
+      var queryParamString = this.useHash ? window.location.hash.split('?')[1] : window.location.search.split('?')[1];
       return queryParamString && queryParamString.split('&').reduce(function (prev, queryparam) {
         var split = queryparam.split('=');
         prev[decodeURIComponent(split[0])] = decodeURIComponent(split[1]) || '';
@@ -124,7 +119,7 @@ var EsRouter = function () {
   }, {
     key: 'getPathFromUrl',
     value: function getPathFromUrl() {
-      return !this.useHash ? this.returnWindow().location.pathname.split(this.base)[1] || '/' : this.returnWindow().location.hash.split('?')[0].substring(1);
+      return !this.useHash ? window.location.pathname.split(this.base)[1] || '/' : window.location.hash.split('?')[0].substring(1);
     }
   }, {
     key: 'eventChangeListener',
@@ -213,7 +208,7 @@ var EsRouter = function () {
       }
 
       Object.keys(this.queryParams).forEach(function (key) {
-        if (!_this5.queryParams[key] && typeof _this5.queryParams[key] !== 'number') {
+        if (isNotDefined(_this5.queryParams[key]) && typeof _this5.queryParams[key] !== 'number') {
           delete _this5.queryParams[key];
         }
       });
@@ -281,7 +276,7 @@ var EsRouter = function () {
       return Object.keys(qp).reduce(function (prev, key) {
         var keyString = key.toString();
         var valueString = qp[key].toString();
-        if (isNotDefined(valueString) || !valueString.length) {
+        if (isNotDefined(valueString) || Array.isArray(valueString) && !valueString.length) {
           return prev;
         }
         return [].concat(_toConsumableArray(prev), [encodeURIComponent(keyString) + '=' + encodeURIComponent(valueString)]);
@@ -318,9 +313,9 @@ var EsRouter = function () {
       //set new url
       if (this.useHash) {
         this.wasChangedByUser = true;
-        this.returnWindow().location.hash = newUrl;
+        window.location.hash = newUrl;
       } else {
-        this.returnWindow().history.pushState(null, null, newUrl);
+        window.history.pushState(null, null, newUrl);
       }
 
       //finally, set current path state
