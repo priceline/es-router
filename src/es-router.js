@@ -19,7 +19,7 @@ class EsRouter {
     this.notStrictRouting = notStrictRouting;
     this.queryParams = this.getParamsFromUrl();
 
-    if (base[base.length - 1] === '/') {
+    if (base && base[base.length - 1] === '/') {
       this.base = this.base.substring(0, this.base.length - 1);
     }
 
@@ -82,7 +82,8 @@ class EsRouter {
   }
 
   getParamsFromUrl() {
-    const queryParamString = this.useHash ? window.location.hash.split('?')[1] : window.location.search.split('?')[1];
+    const queryParamString = this.useHash ? window.location.hash.split('?')[1] :
+      window.location.search.split('?')[1];
     return (queryParamString && queryParamString.split('&').reduce((prev, queryparam) => {
       const split = queryparam.split('=');
       prev[decodeURIComponent(split[0])] = decodeURIComponent(split[1]) || '';
@@ -163,14 +164,14 @@ class EsRouter {
     } else {
       this.queryParams[item] = value;
     }
-    const currentQueryParam = this.getParamsFromUrl();
 
     Object.keys(this.queryParams).forEach((key) => {
-      if (!this.queryParams[key] && typeof this.queryParams[key] !== 'number') {
+      if (isNotDefined(this.queryParams[key]) && typeof this.queryParams[key] !== 'number') {
         delete this.queryParams[key];
       }
     });
 
+    const currentQueryParam = this.getParamsFromUrl();
     const allNewParams = this.createParamString(currentQueryParam).join('');
     const oldParams = this.createParamString(this.queryParams).join('');
 
@@ -219,10 +220,12 @@ class EsRouter {
 
   createParamString(qp) {
     return Object.keys(qp).reduce((prev, key) => {
-      if (isNotDefined(qp[key]) || !qp[key].length) {
+      const keyString = key.toString();
+      const valueString = qp[key].toString();
+      if (isNotDefined(valueString) || (Array.isArray(valueString) && !valueString.length)) {
         return prev;
       }
-      return [...prev, (`${encodeURIComponent(key)}=${encodeURIComponent(qp[key])}`)];
+      return [...prev, (`${encodeURIComponent(keyString)}=${encodeURIComponent(valueString)}`)];
     }, []);
   }
 
