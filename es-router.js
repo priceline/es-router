@@ -25,7 +25,8 @@ var EsRouter = function () {
         notStrictRouting = _ref.notStrictRouting,
         home = _ref.home,
         base = _ref.base,
-        routeOnLoad = _ref.routeOnLoad;
+        _ref$routeOnLoad = _ref.routeOnLoad,
+        routeOnLoad = _ref$routeOnLoad === undefined ? true : _ref$routeOnLoad;
 
     _classCallCheck(this, EsRouter);
 
@@ -96,7 +97,7 @@ var EsRouter = function () {
     }
 
     //do an initial routing
-    if (routeOnLoad !== false) {
+    if (routeOnLoad) {
       this.path(this.getPathFromUrl());
     }
   }

@@ -54,7 +54,7 @@ this gives you the ability to go to any path you'd like, regardless of whether y
 this is the base url for your application if you aren't using the hash. if this isn't declared and you are using `useHash`, it will try and retrieve the base from the `base` tag in the html5Mode
 
 ### routeOnLoad (optional, defauls to true)
-this makes a route change event get fired upon loading the page. if this is set to false, no initial route change will be fired. setting this to false may work better for some app configurations that use server side rendering.
+this makes a route change event get fired upon loading the page. if this is set to false, no initial route change will be fired. Setting this to false may work better for some app configurations that use server side rendering.
 
 ### routes (required)
 
