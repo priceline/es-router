@@ -20,9 +20,6 @@ class EsRouter {
     this.strictRouting = strictRouting;
     this.queryParams = this.getParamsFromUrl();
 
-    console.log(this);
-
-
     if (base && base[base.length - 1] === '/' && base !== '/') {
       this.base = this.base.substring(0, this.base.length - 1);
     } else {
@@ -289,16 +286,12 @@ class EsRouter {
    * @param  {Boolean} initialLoad  - if true, skips push state/hash change and just fires event
    */
   path(route, isQueryParam, initialLoad = false) {
-    console.log({
-      route, isQueryParam, initialLoad
-    });
     if (!route) {return;}
     let newPath = route;
     let newPathObject = this.getPreDefinedRoute(newPath);
     let redirect = false;
     //if path didn't match and is in strict mode, go home (redirect)
     if (!newPathObject && this.strictRouting) {
-      console.log('redirecting to home');
       newPath = this.home.route;
       newPathObject = this.home;
       redirect = true;
@@ -310,12 +303,6 @@ class EsRouter {
 
     const newUrl = this.buildNewUrl(newPath);
 
-    console.log(newPathObject);
-    console.log(newUrl);
-    console.log(initialLoad);
-    console.log(redirect);
-    console.log(initialLoad === false || redirect === true);
-
     //push new state to the window, but only if this is not the initial load
     //otherwise we end up with two copies of the initial state in browser history
     //
@@ -323,7 +310,6 @@ class EsRouter {
     //Need to come up with a working solution for "redirects"
     //Using hash or pushState for redirects breaks the browser's back button
     if (initialLoad === false || redirect === true) {
-      console.log('strict routing is on, redirecting');
       if (this.useHash) {
         this.wasChangedByUser = true;
         window.location.hash = newUrl;
