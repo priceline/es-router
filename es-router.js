@@ -20,9 +20,11 @@ var EsRouter = function () {
   function EsRouter(_ref) {
     var _this = this;
 
-    var useHash = _ref.useHash,
+    var _ref$useHash = _ref.useHash,
+        useHash = _ref$useHash === undefined ? false : _ref$useHash,
         routes = _ref.routes,
-        notStrictRouting = _ref.notStrictRouting,
+        _ref$strictRouting = _ref.strictRouting,
+        strictRouting = _ref$strictRouting === undefined ? false : _ref$strictRouting,
         home = _ref.home,
         base = _ref.base,
         _ref$routeOnLoad = _ref.routeOnLoad,
@@ -38,7 +40,7 @@ var EsRouter = function () {
     this.useHash = useHash;
     this.routes = routes;
     this.base = base;
-    this.notStrictRouting = notStrictRouting;
+    this.strictRouting = strictRouting;
     this.queryParams = this.getParamsFromUrl();
 
     if (base && base[base.length - 1] === '/' && base !== '/') {
@@ -362,7 +364,7 @@ var EsRouter = function () {
       var newPathObject = this.getPreDefinedRoute(newPath);
 
       //if path didn't match and is in strict mode, go home
-      if (!newPathObject && !this.notStrictRouting) {
+      if (!newPathObject && this.strictRouting) {
         newPath = this.home.route;
         newPathObject = this.home;
       }
@@ -375,7 +377,11 @@ var EsRouter = function () {
 
       //push new state to the window, but only if this is not the initial load
       //otherwise we end up with two copies of the initial state in browser history
-      if (!initialLoad) {
+      //
+      //ignoring this rule for strict routing seems to be the only option right now
+      //Need to come up with a working solution for "redirects"
+      //Using hash or pushState for redirects breaks the browser's back button
+      if (!initialLoad || this.strictRouting) {
         if (this.useHash) {
           this.wasChangedByUser = true;
           window.location.hash = newUrl;

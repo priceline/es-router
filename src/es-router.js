@@ -8,7 +8,7 @@ function clone(object) {
 
 class EsRouter {
 
-  constructor({useHash, routes, notStrictRouting, home, base, routeOnLoad = true}) {
+  constructor({useHash = false, routes, strictRouting = false, home, base, routeOnLoad = true}) {
     this.events = {
       startRouteChange: [],
       finishRouteChange: [],
@@ -17,7 +17,7 @@ class EsRouter {
     this.useHash = useHash;
     this.routes = routes;
     this.base = base;
-    this.notStrictRouting = notStrictRouting;
+    this.strictRouting = strictRouting;
     this.queryParams = this.getParamsFromUrl();
 
 
@@ -292,7 +292,7 @@ class EsRouter {
     let newPathObject = this.getPreDefinedRoute(newPath);
 
     //if path didn't match and is in strict mode, go home
-    if (!newPathObject && !this.notStrictRouting) {
+    if (!newPathObject && this.strictRouting) {
       newPath = this.home.route;
       newPathObject = this.home;
     }
@@ -305,7 +305,11 @@ class EsRouter {
 
     //push new state to the window, but only if this is not the initial load
     //otherwise we end up with two copies of the initial state in browser history
-    if (!initialLoad) {
+    //
+    //ignoring this rule for strict routing seems to be the only option right now
+    //Need to come up with a working solution for "redirects"
+    //Using hash or pushState for redirects breaks the browser's back button
+    if (!initialLoad || this.strictRouting) {
       if (this.useHash) {
         this.wasChangedByUser = true;
         window.location.hash = newUrl;
