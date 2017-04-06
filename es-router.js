@@ -43,6 +43,8 @@ var EsRouter = function () {
     this.strictRouting = strictRouting;
     this.queryParams = this.getParamsFromUrl();
 
+    console.log(this);
+
     if (base && base[base.length - 1] === '/' && base !== '/') {
       this.base = this.base.substring(0, this.base.length - 1);
     } else {
@@ -357,16 +359,21 @@ var EsRouter = function () {
     value: function path(route, isQueryParam) {
       var initialLoad = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
+      console.log({
+        route: route, isQueryParam: isQueryParam, initialLoad: initialLoad
+      });
       if (!route) {
         return;
       }
       var newPath = route;
       var newPathObject = this.getPreDefinedRoute(newPath);
-
-      //if path didn't match and is in strict mode, go home
+      var redirect = false;
+      //if path didn't match and is in strict mode, go home (redirect)
       if (!newPathObject && this.strictRouting) {
+        console.log('redirecting to home');
         newPath = this.home.route;
         newPathObject = this.home;
+        redirect = true;
       }
       //run all pre-move functions
       if (!isQueryParam) {
@@ -375,13 +382,20 @@ var EsRouter = function () {
 
       var newUrl = this.buildNewUrl(newPath);
 
+      console.log(newPathObject);
+      console.log(newUrl);
+      console.log(initialLoad);
+      console.log(redirect);
+      console.log(initialLoad === false || redirect === true);
+
       //push new state to the window, but only if this is not the initial load
       //otherwise we end up with two copies of the initial state in browser history
       //
       //ignoring this rule for strict routing seems to be the only option right now
       //Need to come up with a working solution for "redirects"
       //Using hash or pushState for redirects breaks the browser's back button
-      if (!initialLoad || this.strictRouting) {
+      if (initialLoad === false || redirect === true) {
+        console.log('strict routing is on, redirecting');
         if (this.useHash) {
           this.wasChangedByUser = true;
           window.location.hash = newUrl;
