@@ -102,7 +102,7 @@ var EsRouter = function () {
     //this shouldn't actually push a history state, it should just fire a routing event
     //pushing a new history state adds an extra, unnecessray back button click
     if (routeOnLoad) {
-      this.path(this.getPathFromUrl());
+      this.path(this.getPathFromUrl(), false, true);
     }
   }
 
@@ -147,9 +147,6 @@ var EsRouter = function () {
       var pathname = window.location.pathname;
       var pos = Math.max(0, pathname.indexOf(this.base) + this.base.length - 1);
       var path = pathname.slice(pos) || '/';
-
-      console.log(path);
-
       return this.useHash ? window.location.hash.split('?')[0].substring(1) : path;
     }
 
@@ -164,12 +161,8 @@ var EsRouter = function () {
     value: function eventChangeListener() {
       var _this2 = this;
 
-      console.log('window history changed');
       var currentQueryParam = this.getParamsFromUrl();
       var currentPath = this.getPathFromUrl();
-
-      console.log();
-
       var allNewParams = this.createParamString(currentQueryParam).join('');
       var oldParams = this.createParamString(this.queryParams).join('');
 
@@ -180,8 +173,6 @@ var EsRouter = function () {
           item(_this2.queryParams);
         });
       }
-
-      console.log({ currentPath: currentPath, thisCurrent: this.currentPath });
 
       //check if path has changed
       if (currentPath !== this.currentPath) {
@@ -368,8 +359,6 @@ var EsRouter = function () {
         return;
       }
       var newPath = route;
-      console.log('>>>> ' + route);
-
       var newPathObject = this.getPreDefinedRoute(newPath);
 
       //if path didn't match and is in strict mode, go home
@@ -398,7 +387,6 @@ var EsRouter = function () {
       //finally, set current path state
       var oldPath = this.currentPathObject && Object.keys(this.currentPathObject).length && clone(this.currentPathObject);
       this.currentPathObject = newPathObject;
-      console.log('Route is ' + route);
       this.currentPath = route;
       //run all functions afterwards
       if (!isQueryParam) {

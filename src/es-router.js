@@ -7,6 +7,7 @@ function clone(object) {
 }
 
 class EsRouter {
+
   constructor({useHash, routes, notStrictRouting, home, base, routeOnLoad = true}) {
     this.events = {
       startRouteChange: [],
@@ -18,6 +19,7 @@ class EsRouter {
     this.base = base;
     this.notStrictRouting = notStrictRouting;
     this.queryParams = this.getParamsFromUrl();
+
 
     if (base && base[base.length - 1] === '/' && base !== '/') {
       this.base = this.base.substring(0, this.base.length - 1);
@@ -78,7 +80,7 @@ class EsRouter {
     //this shouldn't actually push a history state, it should just fire a routing event
     //pushing a new history state adds an extra, unnecessray back button click
     if (routeOnLoad) {
-      this.path(this.getPathFromUrl());
+      this.path(this.getPathFromUrl(), false, true);
     }
   }
 
@@ -114,9 +116,6 @@ class EsRouter {
     const pathname = window.location.pathname;
     const pos = Math.max(0, pathname.indexOf(this.base) + this.base.length - 1);
     const path = pathname.slice(pos) || '/';
-
-    console.log(path);
-
     return this.useHash ? window.location.hash.split('?')[0].substring(1) : path;
   }
 
@@ -126,12 +125,8 @@ class EsRouter {
    * This can happen when calling path() or when the browser navigates natively
    */
   eventChangeListener() {
-    console.log('window history changed');
     const currentQueryParam = this.getParamsFromUrl();
     const currentPath = this.getPathFromUrl();
-
-    console.log();
-
     const allNewParams = this.createParamString(currentQueryParam).join('');
     const oldParams = this.createParamString(this.queryParams).join('');
 
@@ -142,8 +137,6 @@ class EsRouter {
         item(this.queryParams);
       });
     }
-
-    console.log({currentPath, thisCurrent: this.currentPath});
 
     //check if path has changed
     if (currentPath !== this.currentPath) {
@@ -296,8 +289,6 @@ class EsRouter {
   path(route, isQueryParam, initialLoad = false) {
     if (!route) {return;}
     let newPath = route;
-    console.log('>>>> ' + route);
-
     let newPathObject = this.getPreDefinedRoute(newPath);
 
     //if path didn't match and is in strict mode, go home
@@ -327,7 +318,6 @@ class EsRouter {
     const oldPath = this.currentPathObject && Object.keys(this.currentPathObject).length &&
       clone(this.currentPathObject);
     this.currentPathObject = newPathObject;
-    console.log('Route is ' + route);
     this.currentPath = route;
     //run all functions afterwards
     if (!isQueryParam) {
