@@ -1,3 +1,6 @@
 {
-  "extends": "./node_modules/priceline-eslint-config/babel/index.js"
+  "extends": "./node_modules/priceline-eslint-config/babel/index.js",
+  "rules": {
+    "no-console": 0
+  }
 }

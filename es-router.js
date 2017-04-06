@@ -41,8 +41,10 @@ var EsRouter = function () {
     this.notStrictRouting = notStrictRouting;
     this.queryParams = this.getParamsFromUrl();
 
-    if (base && base[base.length - 1] === '/') {
+    if (base && base[base.length - 1] === '/' && base !== '/') {
       this.base = this.base.substring(0, this.base.length - 1);
+    } else {
+      this.base = base;
     }
 
     //get base if needed
@@ -97,12 +99,17 @@ var EsRouter = function () {
     }
 
     //do an initial routing
+    //this shouldn't actually push a history state, it should just fire a routing event
+    //pushing a new history state adds an extra, unnecessray back button click
     if (routeOnLoad) {
       this.path(this.getPathFromUrl());
     }
   }
 
-  //get path we're currently on
+  /**
+   * get path we're currently on
+   * @return {object} - path object with name and route props
+   */
 
 
   _createClass(EsRouter, [{
@@ -110,6 +117,12 @@ var EsRouter = function () {
     value: function getState() {
       return this.currentPathObject;
     }
+
+    /**
+     * Parses the current query string params from the url
+     * @return {object}
+     */
+
   }, {
     key: 'getParamsFromUrl',
     value: function getParamsFromUrl() {
@@ -120,18 +133,42 @@ var EsRouter = function () {
         return prev;
       }, {}) || {};
     }
+
+    /**
+     * Parses the current routing path from the url, excluding the base
+     * This will always start with a slash
+     *
+     * @return {String}
+     */
+
   }, {
     key: 'getPathFromUrl',
     value: function getPathFromUrl() {
-      return !this.useHash ? window.location.pathname.split(this.base)[1] || '/' : window.location.hash.split('?')[0].substring(1);
+      var pathname = window.location.pathname;
+      var pos = Math.max(0, pathname.indexOf(this.base) + this.base.length - 1);
+      var path = pathname.slice(pos) || '/';
+
+      console.log(path);
+
+      return this.useHash ? window.location.hash.split('?')[0].substring(1) : path;
     }
+
+    /**
+     * Listens for hashchange or popstate events from the window
+     * And fires off route change events to subscribers
+     * This can happen when calling path() or when the browser navigates natively
+     */
+
   }, {
     key: 'eventChangeListener',
     value: function eventChangeListener() {
       var _this2 = this;
 
+      console.log('window history changed');
       var currentQueryParam = this.getParamsFromUrl();
       var currentPath = this.getPathFromUrl();
+
+      console.log();
 
       var allNewParams = this.createParamString(currentQueryParam).join('');
       var oldParams = this.createParamString(this.queryParams).join('');
@@ -144,6 +181,8 @@ var EsRouter = function () {
         });
       }
 
+      console.log({ currentPath: currentPath, thisCurrent: this.currentPath });
+
       //check if path has changed
       if (currentPath !== this.currentPath) {
         this.currentPath = currentPath;
@@ -155,7 +194,13 @@ var EsRouter = function () {
       }
     }
 
-    //allow items to subscribe to pre and post route changes
+    /**
+     * allow items to subscribe to pre and post route changes
+     * @param  {String} topic       - event name, e.g. startRouteChange, finishRouteChange
+     * @param  {function} listener  - event listener callback
+     * @return {object}             - object containing a remove property to unsubscribe.
+     *                                maybe consider changing this to an index, a la setInterval
+     */
 
   }, {
     key: 'subscribe',
@@ -287,15 +332,43 @@ var EsRouter = function () {
       }, []);
     }
 
-    //actual routing function
+    /**
+     * Build a new url for path changes
+     * We assume the route has already been verified as a predefined route here (or not)
+     *
+     * @param  {string} newPath - input path, e.g. /account/login
+     * @return {string}         - output ready for history push, e.g. /base/account/login?foo=bar
+     */
+
+  }, {
+    key: 'buildNewUrl',
+    value: function buildNewUrl(newPath) {
+      var paramArray = this.createParamString(this.queryParams);
+      var paramArrayString = paramArray.length ? '?' + paramArray.join('&') : '';
+      // make sure the new url starts with a slash
+      var newUrlBase = this.base.match(/^\//) ? this.base : '/' + this.base;
+      var newUrl = ('' + newUrlBase + newPath + paramArrayString).replace(/\/{2,}/g, '/'); // dedup consecutive slashes
+      return newUrl;
+    }
+
+    /**
+     * Actual routing function
+     *
+     * @param  {string}  route        - New path to naviate to. Absolute path, not including base
+     * @param  {Boolean} isQueryParam - ???
+     * @param  {Boolean} initialLoad  - if true, skips push state/hash change and just fires event
+     */
 
   }, {
     key: 'path',
     value: function path(route, isQueryParam) {
+      var initialLoad = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
       if (!route) {
         return;
       }
       var newPath = route;
+      console.log('>>>> ' + route);
 
       var newPathObject = this.getPreDefinedRoute(newPath);
 
@@ -309,28 +382,34 @@ var EsRouter = function () {
         this.startRouteChange(this.currentPathObject, newPathObject);
       }
 
-      //build new url
-      var paramArray = this.createParamString(this.queryParams);
-      var paramArrayString = paramArray.length ? '?' + paramArray.join('&') : '';
-      var newUrl = '' + (this.base || '') + newPath + paramArrayString;
+      var newUrl = this.buildNewUrl(newPath);
 
-      //set new url
-      if (this.useHash) {
-        this.wasChangedByUser = true;
-        window.location.hash = newUrl;
-      } else {
-        window.history.pushState(null, null, newUrl);
+      //push new state to the window, but only if this is not the initial load
+      //otherwise we end up with two copies of the initial state in browser history
+      if (!initialLoad) {
+        if (this.useHash) {
+          this.wasChangedByUser = true;
+          window.location.hash = newUrl;
+        } else {
+          window.history.pushState(null, null, newUrl);
+        }
       }
 
       //finally, set current path state
       var oldPath = this.currentPathObject && Object.keys(this.currentPathObject).length && clone(this.currentPathObject);
       this.currentPathObject = newPathObject;
+      console.log('Route is ' + route);
       this.currentPath = route;
       //run all functions afterwards
       if (!isQueryParam) {
         this.finishRouteChange(oldPath, this.currentPathObject);
       }
     }
+
+    /**
+     * Publish 'startRouteChange' event to all subscribers
+     */
+
   }, {
     key: 'startRouteChange',
     value: function startRouteChange(oldPath, newPath) {
@@ -338,6 +417,11 @@ var EsRouter = function () {
         item(oldPath, newPath);
       });
     }
+
+    /**
+     * Publish 'finishRouteChange' event to all subscribers
+     */
+
   }, {
     key: 'finishRouteChange',
     value: function finishRouteChange(oldPath, newPath) {
