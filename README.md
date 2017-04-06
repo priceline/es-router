@@ -42,7 +42,7 @@ let's go through each option.
 
 useHash defines whether or not you'd like to use pushState, or the equivalent to Angular's `html5Mode`. This is a great option if your base is not consistent or you're on IE9
 
-### home (required is strictRouting is true)
+### home (required if strictRouting is true)
 
 this is a default path that you'd like to go to if the url doesn't match to any of the paths you've defined
 
@@ -53,8 +53,8 @@ this enforces strict routing, meaning attempts to go to a path other than the on
 ### base (required if useHash is true)
 this is the base url for your application if you aren't using the hash. if this isn't declared and you are using `useHash`, it will try and retrieve the base from the `base` tag in the html5Mode
 
-### routeOnLoad (optional, defauls to true)
-this makes a route change event get fired upon loading the page. if this is set to false, no initial route change will be fired. Setting this to false may work better for some app configurations that use server side rendering.
+### routeOnLoad (optional, defaults to true)
+this makes a route change event get fired upon loading the page. if this is set to false, no initial route change will be fired. setting this to false may work better for some app configurations (e.g. server side rendering)
 
 ### routes (required)
 
