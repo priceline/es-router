@@ -7,7 +7,7 @@ function clone(object) {
 }
 
 class EsRouter {
-  constructor({useHash, routes, notStrictRouting, home, base}) {
+  constructor({useHash, routes, notStrictRouting, home, base, routeOnLoad = true}) {
     this.events = {
       startRouteChange: [],
       finishRouteChange: [],
@@ -73,7 +73,9 @@ class EsRouter {
     }
 
     //do an initial routing
-    this.path(this.getPathFromUrl());
+    if (routeOnLoad) {
+      this.path(this.getPathFromUrl());
+    }
   }
 
   //get path we're currently on
