@@ -20,7 +20,7 @@ GLOBAL.window = {
 const router = new EsRouter({
   useHash: false,
   home: 'home',
-  notStrictRouting: false,
+  strictRouting: true,
   base: '/testurl/',
   routes: [
     {
@@ -53,7 +53,7 @@ describe('routing', function() {
     router.path('/path');
     expect(router.getState().name).toEqual('path1');
   });
-  it('redirects home if notStrictRouting is false', () => {
+  it('redirects home if strictRouting is true', () => {
     router.path('/somewhereThatDoesntExist');
     expect(router.getState().name).toEqual('home');
   });

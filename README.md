@@ -12,7 +12,7 @@ import Router from 'es-router';
 const router = new Router({
   useHash: false,
   home: 'home',
-  notStrictRouting: false,
+  strictRouting: true,
   base: '/testurl/',
   routeOnLoad: true,
   routes: [
@@ -42,19 +42,19 @@ let's go through each option.
 
 useHash defines whether or not you'd like to use pushState, or the equivalent to Angular's `html5Mode`. This is a great option if your base is not consistent or you're on IE9
 
-### home (required unless notStrictRouting is false)
+### home (required if strictRouting is true)
 
 this is a default path that you'd like to go to if the url doesn't match to any of the paths you've defined
 
-### notStrictRouting (optional)
+### strictRouting (optional)
 
-this gives you the ability to go to any path you'd like, regardless of whether you've declared it in this config or not
+this enforces strict routing, meaning attempts to go to a path other than the ones defined in `routes` will be redirected to `home`. this can result in the browser back button getting stuck in an infinite redirect loop, so it is false by default
 
-### base (required unless useHash is false)
+### base (required if useHash is true)
 this is the base url for your application if you aren't using the hash. if this isn't declared and you are using `useHash`, it will try and retrieve the base from the `base` tag in the html5Mode
 
-### routeOnLoad (optional, defauls to true)
-this makes a route change event get fired upon loading the page. if this is set to false, no initial route change will be fired. Setting this to false may work better for some app configurations that use server side rendering.
+### routeOnLoad (optional, defaults to true)
+this makes a route change event get fired upon loading the page. if this is set to false, no initial route change will be fired. setting this to false may work better for some app configurations (e.g. server side rendering)
 
 ### routes (required)
 
